@@ -39,10 +39,10 @@ with pixels.PixelDrawer(100) as pix_drawer:
 import time
 from simpyx import pixels
 with pixels.PixelDrawer(100) as pix:
-    delta = round(255 / len(pix))
+    delta = 255 / len(pix)
     while True:
         for i, p in enumerate(pix):
-            p.set_rgb(100, 0, (i + i) * delta)
+            p.set_rgb(100, 0, round((i + i) * delta)
             pix.show()
             time.sleep(0.05)
         pix.fill(0, 0, 0)
