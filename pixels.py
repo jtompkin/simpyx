@@ -8,30 +8,6 @@ from typing import TextIO
 WIDTH, HEIGHT = shutil.get_terminal_size()
 
 
-class Color:
-    def __init__(self, r: int, g: int, b: int) -> None:
-        self._r = r
-        self._g = g
-        self._b = b
-        self.brightness: float = 1
-
-    def get_rgb(self) -> tuple[int, int, int]:
-        assert (
-            self.brightness >= 0
-        ), "brightnesss must be greater than or equal to zero"
-        return (
-            round(self._r * self.brightness),
-            round(self._g * self.brightness),
-            round(self._b * self.brightness),
-        )
-
-    def __repr__(self) -> str:
-        return f"Color(({self._r}, {self._g}, {self._b}))"
-
-    def __str__(self) -> str:
-        return str((self._r, self._g, self._b))
-
-
 class Screen:
     def __init__(self, file: TextIO = sys.stdout) -> None:
         self._file = file
@@ -51,11 +27,11 @@ class Screen:
     def print_color(self, msg: str, r: int, g: int, b: int) -> None:
         self._file.write(f"\x1b[38;2;{r};{g};{b}m{msg}")
 
-    def flush(self) -> None:
-        self._file.flush()
-
     def print(self, msg: str) -> int:
         return self._file.write(msg)
+
+    def flush(self) -> None:
+        self._file.flush()
 
     def __enter__(self):
         return self
@@ -66,7 +42,55 @@ class Screen:
         self._file.close()
 
 
-class Pixels:
+class Pixel:
+    def __init__(self, r: int, g: int, b: int, brightness: float = 1) -> None:
+        self._r = r
+        self._g = g
+        self._b = b
+        self._brightness: float = brightness
+        self._changed = True
+
+    @property
+    def brightness(self) -> float:
+        return self._brightness
+
+    @brightness.setter
+    def brightness(self, f: float) -> None:
+        self.changed = True
+        self._brightness = f
+        assert (
+            self.brightness >= 0
+        ), "brightnesss must be greater than or equal to zero"
+
+    @property
+    def changed(self) -> bool:
+        return self._changed
+
+    @changed.setter
+    def changed(self, b: bool) -> None:
+        self._changed = b
+
+    def get_rgb(self) -> tuple[int, int, int]:
+        return (
+            round(self._r * self.brightness),
+            round(self._g * self.brightness),
+            round(self._b * self.brightness),
+        )
+
+    def set_rgb(self, r: int, g: int, b: int) -> None:
+        self._r = r
+        self._g = g
+        self._b = b
+        self.changed = True
+
+    def __repr__(self) -> str:
+        return f"Color({self._r}, {self._g}, {self._b})"
+
+    def __str__(self) -> str:
+        return str((self._r, self._g, self._b))
+
+
+class PixelDrawer:
     def __init__(
         self,
         n: int,
@@ -78,8 +102,7 @@ class Pixels:
         self.pix_str = pixel_str
         self.header = header
         self.footer = footer
-        self._pixel_array = [Color(0, 0, 0)] * n
-        self._changed = {i: True for i in range(len(self._pixel_array))}
+        self._pixel_array = [Pixel(0, 0, 0) for _ in range(n)]
 
         if screen is None:
             screen = Screen().__enter__()
@@ -94,33 +117,33 @@ class Pixels:
         )
         self._screen.print(self.footer)
 
-    def fill(self, color: Color) -> None:
-        self._pixel_array = [color] * len(self)
-        self._changed = {i: True for i in range(len(self._pixel_array))}
+    def fill(self, r: int, g: int, b: int, brightness: float = 1) -> None:
+        self._pixel_array = [
+            Pixel(r, g, b, brightness) for _ in range(len(self))
+        ]
 
     def show(self) -> None:
         x = len(self.header) + 1
-        for i, c in enumerate(self._pixel_array):
+        for p in self._pixel_array:
             y = ceil(x / WIDTH)
-            if self._changed[i]:
+            if p.changed:
                 self._screen.set_cursor(x % WIDTH, y)
-                self._screen.print_color(self.pix_str, *c.get_rgb())
-                self._changed[i] = False
+                self._screen.print_color(self.pix_str, *p.get_rgb())
+                p.changed = False
             x += len(self.pix_str)
         self._screen.flush()
 
-    def __getitem__(self, i: int) -> Color:
+    def __getitem__(self, i: int) -> Pixel:
         return self._pixel_array[i]
 
-    def __setitem__(self, i: int, c: Color) -> None:
-        self._pixel_array[i] = c
-        self._changed[i] = True
+    def __setitem__(self, i: int, pixel: Pixel) -> None:
+        self._pixel_array[i] = pixel
 
-    # def __iter__(self):
-    #    i = 0
-    #    while i < len(self):
-    #        yield self[i]
-    #        i += 1
+    def __iter__(self):
+        i = 0
+        while i < len(self):
+            yield self[i]
+            i += 1
 
     def __enter__(self):
         return self
