@@ -1,5 +1,8 @@
-from typing import TextIO
 import sys
+from types import TracebackType
+from typing import Optional, TextIO, Type
+
+# pyright: strict
 
 
 class Screen:
@@ -30,7 +33,13 @@ class Screen:
     def __enter__(self):
         return self
 
-    def __exit__(self) -> None:
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> bool:
         self.flush()
         self.show_cursor()
         self._file.close()
+        return False

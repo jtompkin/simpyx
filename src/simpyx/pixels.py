@@ -1,9 +1,9 @@
 import shutil
-from collections.abc import Callable
 from math import ceil
-from typing import Self
+from types import TracebackType
+from typing import Optional, Type
 
-from screen import Screen
+from .screen import Screen
 
 # pyright: strict
 
@@ -101,9 +101,6 @@ class PixelDrawer:
             x += len(self.pix_str)
         self._screen.flush()
 
-    def run(self, program: Callable[[Self], None]) -> None:
-        program(self)
-
     def __getitem__(self, i: int) -> Pixel:
         return self._pixel_array[i]
 
@@ -119,8 +116,13 @@ class PixelDrawer:
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_tb) -> None:  # pyright: ignore
-        self._screen.__exit__()
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> bool:
+        return self._screen.__exit__(exc_type, exc_value, exc_tb)
 
     def __len__(self) -> int:
         return len(self._pixel_array)

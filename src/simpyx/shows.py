@@ -1,6 +1,8 @@
 from time import sleep
 
-from Pixels import pixels
+from . import pixels
+
+# pyright: strict
 
 DELAY = 0.05
 
