@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright 2024 Josh Tompkin
+# Licensed under the MIT license
+
 import argparse
 
 from simpyx import shows, pixels
@@ -21,8 +24,11 @@ def main(argv: list[str] | None = None) -> None:
         help="Provide the number of pixels to simulate.",
     )
     args = parser.parse_args(argv)
-    with pixels.PixelDrawer(args.n) as pixel_drawer:
-        shows.cycle(pixel_drawer)
+    try:
+        with pixels.PixelDrawer(args.n) as pixel_drawer:
+            shows.static(pixel_drawer)
+    except KeyboardInterrupt:
+        return
 
 
 if __name__ == "__main__":
