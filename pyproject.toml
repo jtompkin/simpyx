@@ -7,7 +7,7 @@ name = "simpyx"
 dynamic = ["version"]
 description = "Simulate neopixels in the terminal."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = "MIT"
 authors = [
     { name = "Josh Tompkin", email = "jtompkin-dev@pm.me" },
