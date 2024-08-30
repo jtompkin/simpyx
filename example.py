@@ -26,7 +26,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     try:
         with pixels.PixelDrawer(args.n) as pixel_drawer:
-            shows.static(pixel_drawer)
+            shows.cycle(pixel_drawer)
     except KeyboardInterrupt:
         return
 
