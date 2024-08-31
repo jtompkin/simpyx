@@ -3,6 +3,7 @@
 # Licensed under the MIT license
 
 import argparse
+import time
 
 from simpyx import shows, pixels
 
@@ -13,6 +14,17 @@ def _positive_int(s: str) -> int:
     return arg
 
 
+def loop(pix_drawer: pixels.PixelDrawer, delay: float) -> None:
+    delta = 1 / len(pix_drawer)
+    while True:
+        pix_drawer.fill(0, 255, 0, 0)
+        for i, p in enumerate(pix_drawer):
+            p.brightness = (i + 1) * delta
+            pix_drawer.show()
+            time.sleep(delay)
+        pix_drawer.redraw()
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="simpyx", description="Simulate neopixels in the terminal."
@@ -21,12 +33,12 @@ def main(argv: list[str] | None = None) -> None:
         "-n",
         type=_positive_int,
         default=100,
-        help="Provide the number of pixels to simulate.",
+        help="Specify the number of pixels to simulate.",
     )
     args = parser.parse_args(argv)
     try:
-        with pixels.PixelDrawer(args.n) as pixel_drawer:
-            shows.cycle(pixel_drawer)
+        with pixels.PixelDrawer(args.n, "■ ") as pixel_drawer:
+            loop(pixel_drawer, 0.03)
     except KeyboardInterrupt:
         return
 

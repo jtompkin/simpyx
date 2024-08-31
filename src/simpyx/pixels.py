@@ -11,7 +11,6 @@ Typical usage example:
 ```
 """
 
-import shutil
 from math import ceil
 from types import TracebackType
 from typing import Optional, Type
@@ -19,8 +18,6 @@ from typing import Optional, Type
 from .screen import Screen
 
 # pyright: strict
-
-WIDTH, HEIGHT = shutil.get_terminal_size()
 
 
 class Pixel:
@@ -38,7 +35,8 @@ class Pixel:
             r: (int) Red color value, between 0 and 255.
             g: (int) Green color value, between 0 and 255.
             b: (int) Blue color value, between 0 and 255.
-            brightness: (float) Pixel brightness as a proportion, between 0 and 1
+            brightness: (float) Pixel brightness as a proportion, between 0 and
+                1. (default 1)
         """
         self._r, self._g, self._b = (r, g, b)
         self._brightness: float = brightness
@@ -100,14 +98,15 @@ class PixelDrawer:
         n: int,
         pixel_str: str = "■ ",
         header: str = "[ ",
-        footer: str = "]",
+        footer: str = " ]",
         screen: Screen | None = None,
     ) -> None:
         """Initializes PixelDrawer.
 
         Args:
             n: (int) Number of Pixels in the array.
-            pixel_str: (str) Representation of each Pixel. (default "■ ")
+            pixel_str: (str) Representation of each Pixel. Will get funky if
+                more than 1 character. (default "■")
             header: (str) This will be drawn before the Pixel array.
                 (default "[ ")
             footer: (str) This will be drawn after the Pixel array.
@@ -156,13 +155,15 @@ class PixelDrawer:
         self.redraw()
 
     def redraw(self) -> None:
-        """Clear the screen and print the header and footer"""
+        """Clear the screen, update its size, and print the header and footer"""
         self._screen.clear()
+        self._screen.update_size()
         self._screen.set_cursor()
-        self._screen.print(self.header)
+        self._screen.print_color(self.header, 220, 220, 220)
+        x = len(self) * len(self.pix_str) + len(self.header) + 1
         self._screen.set_cursor(
-            (len(self) + len(self.pix_str)) * len(self.pix_str) % WIDTH,
-            ceil(len(self) * len(self.pix_str) / WIDTH),
+            x % (self._screen.width + (-len(self.pix_str) + 2)),
+            ceil(x / self._screen.width),
         )
         self._screen.print(self.footer)
 
@@ -176,17 +177,19 @@ class PixelDrawer:
             brightness: (float) Pixel brightness as a proportion, between 0 and
                 1.
         """
-        self._pixel_array = [
-            Pixel(r, g, b, brightness) for _ in range(len(self))
-        ]
+        for p in self:
+            p.set_rgb(r, g, b)
+            p.brightness = brightness
 
     def show(self) -> None:
         """Print the Pixel array to the Screen."""
-        x = len(self._header) + 1
-        for p in self._pixel_array:
-            y = ceil(x / WIDTH)
+        x = len(self.header) + 1
+        for p in self:
             if p.changed:
-                self._screen.set_cursor(x % WIDTH, y)
+                y = ceil(x / self._screen.width)
+                self._screen.set_cursor(
+                    x % (self._screen.width + (-len(self.pix_str) + 2)), y
+                )
                 self._screen.print_color(self._pix_str, *p.get_rgb())
                 p.changed = False
             x += len(self._pix_str)

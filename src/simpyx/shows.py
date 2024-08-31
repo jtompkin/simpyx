@@ -33,7 +33,7 @@ def cycle(pix: pixels.PixelDrawer) -> None:
             pix.show()
             sleep(DELAY)
         pix.fill(0, 0, 0)
-        pix.show()
+        pix.redraw()
 
 
 def brightness(pix: pixels.PixelDrawer) -> None:

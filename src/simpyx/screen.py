@@ -16,6 +16,7 @@ with Screen() as screen:
 """
 
 import sys
+from shutil import get_terminal_size
 from types import TracebackType
 from typing import Optional, TextIO, Type
 
@@ -32,6 +33,10 @@ class Screen:
             file: Object to open and manipulate.
         """
         self._file = file
+        self.width, self.height = get_terminal_size()
+
+    def update_size(self) -> None:
+        self.width, self.height = get_terminal_size()
 
     def clear(self):
         """Write an escape sequence to clear the screen."""
