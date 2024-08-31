@@ -12,6 +12,8 @@ Typical usage example:
 """
 
 from math import ceil
+from os import POSIX_FADV_SEQUENTIAL, scandir
+import sys
 from types import TracebackType
 from typing import Optional, Type
 
@@ -162,8 +164,8 @@ class PixelDrawer:
         self._screen.print_color(self.header, 220, 220, 220)
         x = len(self) * len(self.pix_str) + len(self.header) + 1
         self._screen.set_cursor(
-            x % (self._screen.width + (-len(self.pix_str) + 2)),
-            ceil(x / self._screen.width),
+            x % (self._screen.width - len(self.pix_str)) + 1,
+            ceil(x / (self._screen.width - len(self.pix_str) + 1)),
         )
         self._screen.print(self.footer)
 
@@ -183,16 +185,19 @@ class PixelDrawer:
 
     def show(self) -> None:
         """Print the Pixel array to the Screen."""
-        x = len(self.header) + 1
-        for p in self:
+        sys.stderr.write(
+            f"width: {self._screen.width}, height: {self._screen.height}\n"
+        )
+        sys.stderr.write("pixel\tpixelx\tscrnx\tycoord\n")
+        self.width = self._screen.width - len(self.pix_str) + 1
+        for i, p in enumerate(self):
             if p.changed:
-                y = ceil(x / self._screen.width)
-                self._screen.set_cursor(
-                    x % (self._screen.width + (-len(self.pix_str) + 2)), y
-                )
+                pix_x = i * len(self.pix_str) + len(self.header)
+                scn_x = pix_x % self.width
+                scn_y = pix_x // self.width
+                self._screen.set_cursor(scn_x + 1, scn_y + 1)
                 self._screen.print_color(self._pix_str, *p.get_rgb())
                 p.changed = False
-            x += len(self._pix_str)
         self._screen.flush()
 
     def __getitem__(self, i: int) -> Pixel:

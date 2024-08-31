@@ -25,6 +25,18 @@ def loop(pix_drawer: pixels.PixelDrawer, delay: float) -> None:
         pix_drawer.redraw()
 
 
+def cycle(pix_drawer: pixels.PixelDrawer, delay: float) -> None:
+    delta = 255 / len(pix_drawer)
+    while True:
+        pix_drawer.redraw()
+        pix_drawer.fill(0, 0, 0)
+        pix_drawer.show()
+        for i, p in enumerate(pix_drawer):
+            p.set_rgb(round((i + 1) * delta), 0, 100)
+            pix_drawer.show()
+            time.sleep(delay)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="simpyx", description="Simulate neopixels in the terminal."
@@ -37,8 +49,8 @@ def main(argv: list[str] | None = None) -> None:
     )
     args = parser.parse_args(argv)
     try:
-        with pixels.PixelDrawer(args.n, "■ ") as pixel_drawer:
-            loop(pixel_drawer, 0.03)
+        with pixels.PixelDrawer(args.n, "■") as pixel_drawer:
+            cycle(pixel_drawer, 0.03)
     except KeyboardInterrupt:
         return
 
