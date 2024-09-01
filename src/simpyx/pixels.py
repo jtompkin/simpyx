@@ -11,11 +11,8 @@ Typical usage example:
 ```
 """
 
-from math import ceil
-from os import POSIX_FADV_SEQUENTIAL, scandir
-import sys
 from types import TracebackType
-from typing import Optional, Type
+from typing import Generator, Optional, Type
 
 from .screen import Screen
 
@@ -101,7 +98,7 @@ class PixelDrawer:
         pixel_str: str = "■ ",
         header: str = "[ ",
         footer: str = " ]",
-        screen: Screen | None = None,
+        screen: Optional[Screen] = None,
     ) -> None:
         """Initializes PixelDrawer.
 
@@ -113,7 +110,8 @@ class PixelDrawer:
                 (default "[ ")
             footer: (str) This will be drawn after the Pixel array.
                 (default "]")
-            screen: (Screen) Object to draw Pixels onto. (default `None`)
+            screen: (Screen | None) Object to draw Pixels onto.
+                (default `None`)
         """
         self._pix_str = pixel_str
         self._header = header
@@ -124,6 +122,7 @@ class PixelDrawer:
             screen = Screen().__enter__()
         self._screen = screen
         self._screen.hide_cursor()
+        self.width = 0
         self.redraw()
 
     @property
@@ -161,12 +160,10 @@ class PixelDrawer:
         self._screen.clear()
         self._screen.update_size()
         self._screen.set_cursor()
-        self._screen.print_color(self.header, 220, 220, 220)
-        x = len(self) * len(self.pix_str) + len(self.header) + 1
-        self._screen.set_cursor(
-            x % (self._screen.width - len(self.pix_str)) + 1,
-            ceil(x / (self._screen.width - len(self.pix_str) + 1)),
-        )
+        self._screen.print_color(self._header, 220, 220, 220)
+        self.width = self._screen.width - len(self._pix_str) + 1
+        x = len(self) * len(self._pix_str) + len(self._header)
+        self._screen.set_cursor(x % self.width + 1, x // self.width + 1)
         self._screen.print(self.footer)
 
     def fill(self, r: int, g: int, b: int, brightness: float = 1) -> None:
@@ -179,23 +176,16 @@ class PixelDrawer:
             brightness: (float) Pixel brightness as a proportion, between 0 and
                 1.
         """
-        for p in self:
+        for p in self._pixel_array:
             p.set_rgb(r, g, b)
             p.brightness = brightness
 
     def show(self) -> None:
         """Print the Pixel array to the Screen."""
-        sys.stderr.write(
-            f"width: {self._screen.width}, height: {self._screen.height}\n"
-        )
-        sys.stderr.write("pixel\tpixelx\tscrnx\tycoord\n")
-        self.width = self._screen.width - len(self.pix_str) + 1
-        for i, p in enumerate(self):
+        for i, p in enumerate(self._pixel_array):
             if p.changed:
-                pix_x = i * len(self.pix_str) + len(self.header)
-                scn_x = pix_x % self.width
-                scn_y = pix_x // self.width
-                self._screen.set_cursor(scn_x + 1, scn_y + 1)
+                x = i * len(self._pix_str) + len(self._header)
+                self._screen.set_cursor(x % self.width + 1, x // self.width + 1)
                 self._screen.print_color(self._pix_str, *p.get_rgb())
                 p.changed = False
         self._screen.flush()
@@ -206,10 +196,10 @@ class PixelDrawer:
     def __setitem__(self, i: int, pixel: Pixel) -> None:
         self._pixel_array[i] = pixel
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[Pixel, None, None]:
         i = 0
-        while i < len(self):
-            yield self[i]
+        while i < len(self._pixel_array):
+            yield self._pixel_array[i]
             i += 1
 
     def __enter__(self):

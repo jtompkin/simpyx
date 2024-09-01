@@ -30,7 +30,7 @@ class Screen:
         """Initializes Screen
 
         Args:
-            file: Object to open and manipulate.
+            file: (TextIO) Object to open and manipulate. (default sys.stdout)
         """
         self._file = file
         self.width, self.height = get_terminal_size()
@@ -38,7 +38,7 @@ class Screen:
     def update_size(self) -> None:
         self.width, self.height = get_terminal_size()
 
-    def clear(self):
+    def clear(self) -> None:
         """Write an escape sequence to clear the screen."""
         self._file.write("\x1b[2J")
 
@@ -54,8 +54,8 @@ class Screen:
         """Write an escape sequence to set the cursor position.
 
         Args:
-            x: The 1 indexed x (column) position.
-            y: The 1 indexed y (row) position
+            x: (int) The 1 indexed x (column) position. (default 1)
+            y: (int) The 1 indexed y (row) position. (default 1)
         """
         self._file.write(f"\x1b[{y};{x}H")
 
@@ -63,10 +63,10 @@ class Screen:
         """Print a message with RGB color to the screen.
 
         Args:
-            msg: Message to print.
-            r: Red color value, between 0 and 255.
-            g: Green color value, between 0 and 255.
-            b: Blue color value, between 0 and 255.
+            msg: (str) Message to print.
+            r: (int) Red color value, between 0 and 255.
+            g: (int) Green color value, between 0 and 255.
+            b: (int) Blue color value, between 0 and 255.
         """
         self._file.write(f"\x1b[38;2;{r};{g};{b}m{msg}")
 
@@ -74,7 +74,7 @@ class Screen:
         """Print a message to the screen.
 
         Args:
-            msg: Message to print.
+            msg: (str) Message to print.
         """
         self._file.write(msg)
 
@@ -91,6 +91,7 @@ class Screen:
         exc_value: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> bool:
+        del exc_type, exc_value, exc_tb
         self.flush()
         self.show_cursor()
         self._file.close()
