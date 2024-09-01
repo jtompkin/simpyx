@@ -67,7 +67,7 @@ class Pixel:
         )
 
     def set_rgb(self, r: int, g: int, b: int) -> None:
-        """set_rgb sets the RGB values of the Pixel.
+        """Set the RGB values of the Pixel.
 
         Args:
             r: (int) Red color value, between 0 and 255.
