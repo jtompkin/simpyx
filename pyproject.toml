@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "simpyx"
 dynamic = ["version"]
 description = "Simulate neopixels in the terminal."
-license = {file = "LICENSE"}
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
