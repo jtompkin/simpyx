@@ -50,9 +50,7 @@ class Pixel:
     def brightness(self, f: float) -> None:
         self.changed = True
         self._brightness = f
-        assert (
-            self.brightness >= 0
-        ), "brightnesss must be greater than or equal to zero"
+        assert self.brightness >= 0, "brightnesss must be greater than or equal to zero"
 
     def get_rgb(self) -> tuple[int, int, int]:
         """Get the RGB representation of the pixel.
@@ -173,8 +171,8 @@ class PixelDrawer:
             r: (int) Red color value, between 0 and 255.
             g: (int) Green color value, between 0 and 255.
             b: (int) Blue color value, between 0 and 255.
-            brightness: (float) Pixel brightness as a proportion, between 0 and
-                1.
+            brightness: (float) Pixel brightness as a proportion, between 0 and 1.
+                (default 1)
         """
         for p in self._pixel_array:
             p.set_rgb(r, g, b)

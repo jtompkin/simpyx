@@ -71,7 +71,7 @@ class Screen:
         self._file.write(f"\x1b[38;2;{r};{g};{b}m{msg}")
 
     def print(self, msg: str) -> None:
-        """Print a message to the screen.
+        """Write a message to the screen without any formatting.
 
         Args:
             msg: (str) Message to print.
